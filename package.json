@@ -1,0 +1,22 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^1.1.12",
+    "@atlaskit/pragmatic-drag-and-drop-flourish": "^1.1.0",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.0.3",
+    "@nuxt/icon": "^1.0.0",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "nuxt": "^3.12.2",
+    "vue": "latest"
+  },
+  "packageManager": "pnpm@9.4.0+sha256.b6fd0bfda555e7e584ad7e56b30c68b01d5a04f9ee93989f4b93ca8473c49c74"
+}
