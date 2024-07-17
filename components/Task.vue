@@ -1,17 +1,5 @@
 <script setup lang="ts">
-import {
-  draggable,
-  dropTargetForElements,
-} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine"
-import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
-import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview";
-import {
-  attachClosestEdge,
-  type Edge,
-  extractClosestEdge,
-} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
-
+import type { Edge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/types";
 import { getTaskData, isTaskData, type TTask } from "./task-data";
 
 const { task } = defineProps<{
@@ -42,34 +30,37 @@ const idle: TaskState = { type: "idle" };
 const elRef = ref<HTMLDivElement | null>(null);
 const elState = useState<TaskState>("state_" + task.id, () => idle);
 
-watchEffect((onCleanup) => {
+let cleanup = () => { }
+onMounted(() => {
+  const { draggable, dropTargetForElements, combine, setCustomNativeDragPreview, pointerOutsideOfPreview, attachClosestEdge, extractClosestEdge } = useNuxtApp().$PragmaticDND
+
   if (elRef.value == null) {
-    return;
+    return
   }
 
-  const cleanup = combine(
+  cleanup = combine(
     draggable({
       element: elRef.value,
       getInitialData() {
-        return getTaskData(task);
+        return getTaskData(task)
       },
       onGenerateDragPreview({ nativeSetDragImage }) {
         setCustomNativeDragPreview({
           nativeSetDragImage,
           getOffset: pointerOutsideOfPreview({
-            x: "16px",
-            y: "8px",
+            x: '16px',
+            y: '8px',
           }),
           render({ container }) {
-            elState.value = { type: "preview", container };
+            elState.value = { type: 'preview', container }
           },
-        });
+        })
       },
       onDragStart() {
-        elState.value = { type: "is-dragging" };
+        elState.value = { type: 'is-dragging' }
       },
       onDrop() {
-        elState.value = idle;
+        elState.value = idle
       },
     }),
     dropTargetForElements({
@@ -77,50 +68,50 @@ watchEffect((onCleanup) => {
       canDrop({ source }) {
         // not allowing dropping on yourself
         if (source.element === elRef.value) {
-          return false;
+          return false
         }
         // only allowing tasks to be dropped on me
-        return isTaskData(source.data);
+        return isTaskData(source.data)
       },
       getData({ input }) {
-        const data = getTaskData(task);
+        const data = getTaskData(task)
         return attachClosestEdge(data, {
           element: elRef.value!,
           input,
-          allowedEdges: ["top", "bottom"],
-        });
+          allowedEdges: ['top', 'bottom'],
+        })
       },
       getIsSticky() {
-        return true;
+        return true
       },
       onDragEnter({ self }) {
-        const closestEdge = extractClosestEdge(self.data);
-        elState.value = { type: "is-dragging-over", closestEdge };
+        const closestEdge = extractClosestEdge(self.data)
+        elState.value = { type: 'is-dragging-over', closestEdge }
       },
       onDrag({ self }) {
-        const closestEdge = extractClosestEdge(self.data);
+        const closestEdge = extractClosestEdge(self.data)
 
         // Only need to update react state if nothing has changed.
         if (
-          elState.value.type !== "is-dragging-over" ||
-          elState.value.closestEdge !== closestEdge
+          elState.value.type !== 'is-dragging-over'
+          || elState.value.closestEdge !== closestEdge
         ) {
-          elState.value = { type: "is-dragging-over", closestEdge };
+          elState.value = { type: 'is-dragging-over', closestEdge }
         }
       },
       onDragLeave() {
-        elState.value = idle;
+        elState.value = idle
       },
       onDrop() {
-        elState.value = idle;
+        elState.value = idle
       },
-    })
+    }),
   )
+})
 
-  onCleanup(() => {
-    cleanup();
-  });
-});
+onUnmounted(() => {
+  cleanup()
+})
 </script>
 
 <template>

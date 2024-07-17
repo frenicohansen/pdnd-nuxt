@@ -1,66 +1,67 @@
 <script setup lang="ts">
-import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
-import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
-import { triggerPostMoveFlash } from "@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash";
 import { isTaskData, getTasks, type TTask } from "./task-data";
 
 const tasks = useState<TTask[]>("tasks", () => getTasks());
 
-watchEffect((onCleanup) => {
-  const cleanup = monitorForElements({
+let cleanup = () => {}
+onMounted(() => {
+  const { monitorForElements, extractClosestEdge, reorderWithEdge, triggerPostMoveFlash } = useNuxtApp().$PragmaticDND
+
+  cleanup = monitorForElements({
     canMonitor({ source }) {
-      return isTaskData(source.data);
+      return isTaskData(source.data)
     },
     onDrop({ location, source }) {
-      const target = location.current.dropTargets[0];
+      const target = location.current.dropTargets[0]
       if (!target) {
-        return;
+        return
       }
 
-      const sourceData = source.data;
-      const targetData = target.data;
+      const sourceData = source.data
+      const targetData = target.data
 
       if (!isTaskData(sourceData) || !isTaskData(targetData)) {
-        return;
+        return
       }
 
       const indexOfSource = tasks.value.findIndex(
-        (task) => task.id === sourceData.taskId
-      );
+        task => task.id === sourceData.taskId,
+      )
       const indexOfTarget = tasks.value.findIndex(
-        (task) => task.id === targetData.taskId
-      );
+        task => task.id === targetData.taskId,
+      )
 
       if (indexOfTarget < 0 || indexOfSource < 0) {
-        return;
+        return
       }
 
-      const closestEdgeOfTarget = extractClosestEdge(targetData);
+      const closestEdgeOfTarget = extractClosestEdge(targetData)
 
       tasks.value = reorderWithEdge({
         list: tasks.value,
         startIndex: indexOfSource,
         indexOfTarget,
         closestEdgeOfTarget,
-        axis: "vertical",
-      });
+        axis: 'vertical',
+      })
 
       // Being simple and just querying for the task after the drop.
       // We could use react context to register the element in a lookup,
       // and then we could retrieve that element after the drop and use
       // `triggerPostMoveFlash`. But this gets the job done.
       const element = document.querySelector(
-        `[data-task-id="${sourceData.taskId}"]`
-      );
+        `[data-task-id="{sourceData.taskId}"]`,
+      )
       if (element instanceof HTMLElement) {
-        triggerPostMoveFlash(element);
+        triggerPostMoveFlash(element)
       }
     },
-  });
+  })
+})
 
-  onCleanup(cleanup);
-});
+onUnmounted(() => {
+  cleanup()
+})
 </script>
 
 <template>
