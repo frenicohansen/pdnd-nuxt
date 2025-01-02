@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
+import { reorderWithEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge'
+import { triggerPostMoveFlash } from '@atlaskit/pragmatic-drag-and-drop-flourish/trigger-post-move-flash'
 import { isTaskData, getTasks, type TTask } from "./task-data";
 
 const tasks = useState<TTask[]>("tasks", () => getTasks());
 
 let cleanup = () => {}
 onMounted(() => {
-  const { monitorForElements, extractClosestEdge, reorderWithEdge, triggerPostMoveFlash } = useNuxtApp().$PragmaticDND
-
   cleanup = monitorForElements({
     canMonitor({ source }) {
       return isTaskData(source.data)
@@ -45,10 +47,6 @@ onMounted(() => {
         axis: 'vertical',
       })
 
-      // Being simple and just querying for the task after the drop.
-      // We could use react context to register the element in a lookup,
-      // and then we could retrieve that element after the drop and use
-      // `triggerPostMoveFlash`. But this gets the job done.
       const element = document.querySelector(
         `[data-task-id="{sourceData.taskId}"]`,
       )
